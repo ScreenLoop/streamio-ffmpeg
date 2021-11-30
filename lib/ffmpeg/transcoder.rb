@@ -34,7 +34,21 @@ module FFMPEG
         input_options.each { |k, v| iopts += ['-' + k.to_s, v] }
       end
 
-      @command = [FFMPEG.ffmpeg_binary, '-y', *iopts, '-i', @input, *@raw_options.to_a, @output_file]
+      raw_options = @raw_options.to_a
+
+      ss_index = raw_options.find_index('-ss')
+      ss_flag = nil
+      ss_value = nil
+
+      if ss_index
+        ss_flag = raw_options[ss_index]
+        ss_value = raw_options[ss_index + 1]
+
+        raw_options.delete_at(ss_index + 1)
+        raw_options.delete_at(ss_index)
+      end
+
+      @command = [FFMPEG.ffmpeg_binary, '-y', *iopts, ss_flag, ss_value, '-i', @input, *raw_options, @output_file].compact
     end
 
     def run(&block)
